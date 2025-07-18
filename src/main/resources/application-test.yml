@@ -1,0 +1,40 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:archivaldb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.xml
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  batch:
+    jdbc:
+      initialize-schema: always
+
+archival:
+  s3:
+    bucket: test-bucket
+    region: us-east-1
+    access-key: test
+    secret-key: test
+    base-path: test/
+  parquet:
+    output-dir: /Users/vicky/archival/parquet/
+  skip-s3-upload: true
+
+logging:
+  level:
+    root: INFO
+    org.springframework.batch: INFO
+    com.app.archivaljob: INFO 

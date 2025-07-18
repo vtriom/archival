@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- 0. Create Spring Batch metadata tables for H2 -->
+    <changeSet id="0" author="spring-batch">
+        <sqlFile path="org/springframework/batch/core/schema-h2.sql" relativeToChangelogFile="false"/>
+    </changeSet>
+
+    <!-- 1. Table: archival_query_config -->
+    <changeSet id="1" author="ai">
+        <createTable tableName="archival_query_config">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="query_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="archival_query" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- 2. Table: archival_schedule_config -->
+    <changeSet id="2" author="ai">
+        <createTable tableName="archival_schedule_config">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="query_config_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cron_expression" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(50)"/>
+            <column name="last_run_at" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="archival_schedule_config"
+                                baseColumnNames="query_config_id"
+                                referencedTableName="archival_query_config"
+                                referencedColumnNames="id"
+                                constraintName="fk_schedule_query_config"/>
+    </changeSet>
+
+    <!-- 3. Table: archival_job_status -->
+    <changeSet id="3" author="ai">
+        <createTable tableName="archival_job_status">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="schedule_config_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="run_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(50)"/>
+            <column name="parquet_file_path" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="archival_job_status"
+                                baseColumnNames="schedule_config_id"
+                                referencedTableName="archival_schedule_config"
+                                referencedColumnNames="id"
+                                constraintName="fk_jobstatus_schedule_config"/>
+    </changeSet>
+
+    <!-- 4. Sample archived table for test data -->
+    <changeSet id="4" author="ai">
+        <createTable tableName="archived_orders">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="order_number" type="VARCHAR(100)"/>
+            <column name="amount" type="DECIMAL(10,2)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- 5. Insert test data into archived_orders (older than 7 years) -->
+    <changeSet id="5" author="ai">
+        <insert tableName="archived_orders">
+            <column name="order_number" value="ORD-0001"/>
+            <column name="amount" valueNumeric="100.00"/>
+            <column name="created_date" valueDate="2016-05-01T10:00:00"/>
+        </insert>
+        <insert tableName="archived_orders">
+            <column name="order_number" value="ORD-0002"/>
+            <column name="amount" valueNumeric="250.50"/>
+            <column name="created_date" valueDate="2015-03-15T15:30:00"/>
+        </insert>
+        <insert tableName="archived_orders">
+            <column name="order_number" value="ORD-0003"/>
+            <column name="amount" valueNumeric="75.25"/>
+            <column name="created_date" valueDate="2014-12-20T08:45:00"/>
+        </insert>
+    </changeSet>
+
+    <!-- 6. Insert test archival_query_config and archival_schedule_config -->
+    <changeSet id="6" author="ai">
+        <insert tableName="archival_query_config">
+            <column name="id" valueNumeric="1"/>
+            <column name="query_name" value="Old Orders"/>
+            <column name="archival_query" value="SELECT * FROM archived_orders WHERE created_date &lt; DATEADD('YEAR', -7, NOW())"/>
+            <column name="description" value="Fetch orders older than 7 years"/>
+        </insert>
+        <insert tableName="archival_schedule_config">
+            <column name="id" valueNumeric="1"/>
+            <column name="query_config_id" valueNumeric="1"/>
+            <column name="cron_expression" value="0 0 2 * * ?"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog> 
