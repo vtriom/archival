@@ -1,0 +1,16 @@
+# Ignore Maven target directory
+/target/
+
+# Ignore generated Parquet files
+dir/parquet/
+parquet/
+
+# Ignore IDE files
+.idea/
+*.iml
+
+# macOS system files
+.DS_Store
+
+# Ignore logs
+*.log 

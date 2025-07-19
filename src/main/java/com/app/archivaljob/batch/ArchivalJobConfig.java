@@ -52,11 +52,11 @@ public class ArchivalJobConfig {
                 .<Map<String, Object>, Map<String, Object>>chunk(1000, transactionManager)
                 .reader(dynamicQueryItemReader)
                 .writer(parquetS3ItemWriter)
-                .faultTolerant()
-                .retryLimit(3)
-                .retry(Exception.class)
-                .skipLimit(10)
-                .skip(Exception.class)
+//                .faultTolerant()
+//                .retryLimit(3)
+//                .retry(Exception.class)
+//                .skipLimit(10)
+//                .skip(Exception.class)
                 .build();
     }
 
