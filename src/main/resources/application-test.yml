@@ -20,7 +20,7 @@ spring:
       path: /h2-console
   batch:
     jdbc:
-      initialize-schema: always
+      initialize-schema: ALWAYS
 
 archival:
   s3:

@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/archivaldb
-    username: postgres
-    password: postgres
-    driver-class-name: org.postgresql.Driver
+    jdbc-url: jdbc:h2:mem:archivaldb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
   jpa:
     hibernate:
       ddl-auto: none
@@ -16,9 +16,17 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.xml
   batch:
     jdbc:
-      initialize-schema: always
+      initialize-schema: ALWAYS
+  h2:
+    console:
+      enabled: true
 
 archival:
+  postgres:
+    jdbc-url: jdbc:postgresql://localhost:5432/postgres
+    username: archival
+    password: 
+    driver-class-name: org.postgresql.Driver
   s3:
     bucket: your-s3-bucket-name
     region: your-aws-region
@@ -26,8 +34,8 @@ archival:
     secret-key: your-secret-key
     base-path: archival/parquet/
   parquet:
-    # Set this to your desired output directory for Parquet files
-    output-dir: /Users/vicky/archival/parquet/  # <-- Replace with your own path
+    output-dir: /Users/vicky/archival/parquet/
+  skip-s3-upload: true
 
 logging:
   level:

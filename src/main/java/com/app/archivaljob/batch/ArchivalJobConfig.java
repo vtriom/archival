@@ -15,6 +15,7 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -82,7 +83,7 @@ public class ArchivalJobConfig {
 
     @Bean
     @StepScope
-    public ItemReader<Map<String, Object>> dynamicQueryItemReader(JdbcTemplate jdbcTemplate, @Value("#{stepExecution}") org.springframework.batch.core.StepExecution stepExecution) {
+    public ItemReader<Map<String, Object>> dynamicQueryItemReader(@Qualifier("archivalJdbcTemplate") JdbcTemplate jdbcTemplate, @Value("#{stepExecution}") org.springframework.batch.core.StepExecution stepExecution) {
         return new DynamicQueryItemReader(jdbcTemplate, stepExecution);
     }
 
