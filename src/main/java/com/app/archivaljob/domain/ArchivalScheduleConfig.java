@@ -1,29 +1,18 @@
 package com.app.archivaljob.domain;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "archival_schedule_config")
 public class ArchivalScheduleConfig {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "query_config_id", nullable = false)
     private ArchivalQueryConfig queryConfig;
 
-    @Column(name = "cron_expression", nullable = false)
     private String cronExpression;
 
-    @Column(name = "status")
     private String status;
 
-    @Column(name = "last_run_at")
     private LocalDateTime lastRunAt;
 
-    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     // Getters and setters

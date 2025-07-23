@@ -1,30 +1,19 @@
 package com.app.archivaljob.domain;
 
-import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "archival_job_status")
 public class ArchivalJobStatus {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "schedule_config_id", nullable = false)
     private ArchivalScheduleConfig scheduleConfig;
 
-    @Column(name = "run_date", nullable = false)
     private LocalDate runDate;
 
-    @Column(name = "status")
     private String status;
 
-    @Column(name = "parquet_file_path")
     private String parquetFilePath;
 
-    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     // Getters and setters

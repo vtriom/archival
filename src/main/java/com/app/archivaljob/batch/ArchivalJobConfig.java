@@ -3,7 +3,6 @@ package com.app.archivaljob.batch;
 import com.app.archivaljob.batch.reader.DynamicQueryItemReader;
 import com.app.archivaljob.batch.writer.ParquetS3ItemWriter;
 import com.app.archivaljob.domain.ArchivalQueryConfig;
-import com.app.archivaljob.repository.ArchivalQueryConfigRepository;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.JobParameters;
@@ -53,17 +52,17 @@ public class ArchivalJobConfig {
                 .<Map<String, Object>, Map<String, Object>>chunk(1000, transactionManager)
                 .reader(dynamicQueryItemReader)
                 .writer(parquetS3ItemWriter)
-                .faultTolerant()
+                /*.faultTolerant()
                 .retryLimit(3)
                 .retry(Exception.class)
                 .skipLimit(10)
-                .skip(Exception.class)
+                .skip(Exception.class)*/
                 .build();
     }
 
     @Bean
     @StepScope
-    public Tasklet fetchQueryTasklet(@Autowired ArchivalQueryConfigRepository queryConfigRepository) {
+    public Tasklet fetchQueryTasklet(@Qualifier("h2JdbcTemplate") JdbcTemplate h2JdbcTemplate) {
         return (StepContribution contribution, ChunkContext chunkContext) -> {
             JobParameters jobParameters = chunkContext.getStepContext().getStepExecution().getJobParameters();
             Object queryIdObj = jobParameters.getParameters().get("queryId").getValue();
@@ -72,8 +71,21 @@ public class ArchivalJobConfig {
                 throw new IllegalArgumentException("queryId parameter is required");
             }
             Integer queryId = Integer.parseInt(queryIdObj.toString());
-            ArchivalQueryConfig config = queryConfigRepository.findById(queryId)
-                    .orElseThrow(() -> new IllegalArgumentException("No query config found for id: " + queryId));
+            // Fetch ArchivalQueryConfig using JdbcTemplate
+            String sql = "SELECT id, query_name, archival_query, description, created_at FROM archival_query_config WHERE id = ?";
+            ArchivalQueryConfig config = h2JdbcTemplate.queryForObject(sql, new Object[]{queryId}, (rs, rowNum) -> {
+                ArchivalQueryConfig c = new ArchivalQueryConfig();
+                c.setId(rs.getInt("id"));
+                c.setQueryName(rs.getString("query_name"));
+                c.setArchivalQuery(rs.getString("archival_query"));
+                c.setDescription(rs.getString("description"));
+                java.sql.Timestamp ts = rs.getTimestamp("created_at");
+                if (ts != null) c.setCreatedAt(ts.toLocalDateTime());
+                return c;
+            });
+            if (config == null) {
+                throw new IllegalArgumentException("No query config found for id: " + queryId);
+            }
             // Store the entire config object in the job execution context
             chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext()
                     .put("archivalQueryConfig", config);
